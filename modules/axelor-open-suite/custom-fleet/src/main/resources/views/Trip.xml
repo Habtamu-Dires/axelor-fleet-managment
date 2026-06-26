@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+  <!-- Trip Grid -->
+  <grid name="trip-grid" title="Trips" model="com.custom.fleet.db.Trip">
+    <field name="tripId"/>
+    <field name="totalItems"/>
+    <field name="destination"/>
+    <field name="departureDate"/>
+    <field name="arrivalDate"/>
+    <field name="estimatedHour"/>
+    <field name="vehicle"/>
+    <field name="driver"/>
+
+    <button name="viewCargoBtn" title="View Cargo" icon="fa-truck"
+      onClick="action-trip-view-trip-lines"/>
+
+    <button name="viewCargoBtn" title="Fuel Consumption" icon="fa-tint"
+      onClick="action-fuel-fill-view-open"/>
+  </grid>
+
+  <!-- Trip Form (unchanged) -->
+  <form name="trip-form" title="Trip" model="com.custom.fleet.db.Trip"
+    onSave="save,action-fuel-fill-create-stock-move">
+    <panel title="General Information">
+      <field name="tripId"/>
+      <field name="destination"/>
+      <field name="estimatedDistance"/>
+    </panel>
+
+    <panel title="Cargo Summary" colSpan="12">
+      <field name="tripLineList" colSpan="12" form-view="trip-line-form"
+        grid-view="trip-line-grid" onChange="action-trip-compute-total-items"/>
+      <field name="totalItems" colSpan="4"/>
+    </panel>
+
+    <panel title="Schedule" colSpan="12">
+      <field name="departureDate" onChange="action-trip-compute-arrival"/>
+      <field name="estimatedHour" onChange="action-trip-compute-arrival"/>
+      <field name="arrivalDate" readonly="true"/>
+    </panel>
+
+    <panel title="Assignment">
+      <field name="vehicle" domain="self.status = 1"/>
+      <field name="driver"/>
+    </panel>
+
+    <!-- Inside the Trip Form, preferably in a new panel -->
+    <panel title="Fuel Management" colSpan="12">
+      <field name="fuelFillList" colSpan="12" form-view="fuel-fill-form"
+        grid-view="fuel-fill-grid"/>
+    </panel>
+  </form>
+
+  <!-- TripLine Views -->
+  <grid name="trip-line-grid" title="Cargo Items" model="com.custom.fleet.db.TripLine">
+    <field name="product"/>
+    <field name="qty"/>
+    <field name="weight"/>
+  </grid>
+
+  <form name="trip-line-form" title="Cargo Item" model="com.custom.fleet.db.TripLine">
+    <panel title="CargoItems">
+      <field name="product"/>
+      <field name="qty"/>
+      <field name="weight"/>
+    </panel>
+  </form>
+
+  <!-- ====================== ACTION ====================== -->
+
+  <action-view name="action-trip-view-trip-lines" model="com.custom.fleet.db.TripLine"
+    title="Cargo Items">
+
+    <view type="grid" name="trip-line-grid"/>
+    <view type="form" name="trip-line-form"/>
+
+    <!-- View parameters (popup settings) -->
+    <view-param name="popup" value="true"/>
+    <view-param name="show-toolbar" value="false"/>
+    <view-param name="popup-save" value="false"/>
+    <!-- <view-param name="popup.maximized" value="true"/> -->
+    <domain>self.trip = :tripId</domain>
+    <context name="tripId" expr="eval: __this__.id"/>
+  </action-view>
+
+  <!-- Action to compute total items -->
+  <action-record name="action-trip-compute-total-items"
+    model="com.custom.fleet.db.Trip">
+    <field name="totalItems" expr="eval: __this__.totalItems"/>
+  </action-record>
+
+  <!-- Action to open fuel fill modal -->
+  <action-view name="action-fuel-fill-view-open" title="Fuel Consumption"
+    model="com.custom.fleet.db.FuelFill">
+    <view type="grid" name="fuel-fill-grid"/>
+    <view-param name="popup" value="true"/>
+    <!-- <view-param name="popup-save" value="true"/> -->
+    <domain>self.trip = :tripId</domain>
+    <context name="tripId" expr="eval: __this__.id"/>
+  </action-view>
+
+  <!-- Action to make fuel stock move  -->
+  <action-method name="action-fuel-fill-create-stock-move">
+    <call class="com.custom.fleet.web.TripController" method="processTripFuels"/>
+  </action-method>
+
+</object-views>

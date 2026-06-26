@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://axelor.com/xml/ns/domain-models
+ https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+  <module name="fleet" package="com.custom.fleet.db"/>
+
+  <entity name="Trip">
+    <string name="tripId" namecolumn="true" required="true"/>
+    <string name="destination" required="true"/>
+    <datetime name="departureDate"/>
+    <!-- Computed Arrival Date using Groovy -->
+    <datetime name="arrivalDate">
+           <![CDATA[
+           if (departureDate == null || estimatedHour == null) {
+           return null;
+           }
+
+           double hours = estimatedHour.doubleValue();
+           long fullDays = (long)(hours / 7);
+           double remainingHours = hours % 7;
+
+           return departureDate
+           .plusDays(fullDays)
+           .plusHours((long) remainingHours)
+           .plusMinutes((long) ((remainingHours % 1) * 60));
+           ]]>
+    </datetime>
+
+    <!-- Link to our existing entities -->
+    <many-to-one name="vehicle" ref="com.custom.fleet.db.Vehicle" required="true"/>
+    <many-to-one name="driver" ref="com.custom.fleet.db.Driver" required="true"/>
+
+    <!-- One-to-Many to TripLine -->
+    <one-to-many name="tripLineList" ref="com.custom.fleet.db.TripLine" mappedBy="trip"
+      title="Cargo Items"/>
+
+
+    <decimal name="estimatedDistance" title="Distance (KM)"/>
+    <decimal name="estimatedHour" title="Hour"/>
+
+    <!-- Total Items Field -->
+    <integer name="totalItems" title="Total Number of Items" readonly="true">
+       <![CDATA[
+       if (tripLineList == null || tripLineList.isEmpty()) {
+       return 0;
+       }
+       int total = 0;
+       for (Object obj : tripLineList) {
+       com.custom.fleet.db.TripLine line = (com.custom.fleet.db.TripLine) obj;
+       if (line.getQty() != null) {
+       total += line.getQty();
+       }
+       }
+       return total;
+       ]]>
+    </integer>
+
+    <!--fuel fill list -->
+    <one-to-many name="fuelFillList" ref="com.custom.fleet.db.FuelFill" mappedBy="trip"
+      title="Fuel Fills"/>
+  </entity>
+
+</domain-models>

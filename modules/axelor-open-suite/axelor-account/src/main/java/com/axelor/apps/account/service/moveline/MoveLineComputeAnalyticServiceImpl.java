@@ -1,0 +1,318 @@
+/*
+ * Axelor Business Solutions
+ *
+ * Copyright (C) 2005-2026 Axelor (<http://axelor.com>).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+package com.axelor.apps.account.service.moveline;
+
+import com.axelor.apps.account.db.AnalyticDistributionTemplate;
+import com.axelor.apps.account.db.AnalyticMoveLine;
+import com.axelor.apps.account.db.Move;
+import com.axelor.apps.account.db.MoveLine;
+import com.axelor.apps.account.db.repo.AnalyticAccountRepository;
+import com.axelor.apps.account.db.repo.AnalyticMoveLineRepository;
+import com.axelor.apps.account.service.analytic.AnalyticMoveLineService;
+import com.axelor.apps.account.service.analytic.AnalyticToolService;
+import com.axelor.apps.account.service.app.AppAccountService;
+import com.axelor.apps.account.service.config.AccountConfigService;
+import com.axelor.apps.base.AxelorException;
+import com.axelor.apps.base.db.Company;
+import com.axelor.apps.base.db.TradingName;
+import com.axelor.apps.base.service.CurrencyScaleService;
+import com.google.inject.Inject;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.collections.CollectionUtils;
+
+public class MoveLineComputeAnalyticServiceImpl implements MoveLineComputeAnalyticService {
+
+  protected AnalyticMoveLineService analyticMoveLineService;
+  protected AccountConfigService accountConfigService;
+  protected AnalyticAccountRepository analyticAccountRepository;
+  protected AnalyticToolService analyticToolService;
+  protected AppAccountService appAccountService;
+  protected CurrencyScaleService currencyScaleService;
+  protected AnalyticMoveLineRepository analyticMoveLineRepository;
+
+  @Inject
+  public MoveLineComputeAnalyticServiceImpl(
+      AnalyticMoveLineService analyticMoveLineService,
+      AccountConfigService accountConfigService,
+      AnalyticAccountRepository analyticAccountRepository,
+      AnalyticToolService analyticToolService,
+      AppAccountService appAccountService,
+      CurrencyScaleService currencyScaleService,
+      AnalyticMoveLineRepository analyticMoveLineRepository) {
+    this.analyticMoveLineService = analyticMoveLineService;
+    this.accountConfigService = accountConfigService;
+    this.analyticAccountRepository = analyticAccountRepository;
+    this.analyticToolService = analyticToolService;
+    this.appAccountService = appAccountService;
+    this.currencyScaleService = currencyScaleService;
+    this.analyticMoveLineRepository = analyticMoveLineRepository;
+  }
+
+  @Override
+  public MoveLine computeAnalyticDistribution(MoveLine moveLine) {
+
+    List<AnalyticMoveLine> analyticMoveLineList = moveLine.getAnalyticMoveLineList();
+
+    if ((analyticMoveLineList == null || analyticMoveLineList.isEmpty())) {
+      createAnalyticDistributionWithTemplate(moveLine);
+    } else {
+      LocalDate date = moveLine.getDate();
+      BigDecimal amount =
+          currencyScaleService.getCompanyScaledValue(
+              moveLine, moveLine.getDebit().add(moveLine.getCredit()));
+      for (AnalyticMoveLine analyticMoveLine : analyticMoveLineList) {
+        analyticMoveLineService.updateAnalyticMoveLine(analyticMoveLine, amount, date);
+      }
+    }
+    updateAccountTypeOnAnalytic(moveLine, analyticMoveLineList);
+
+    return moveLine;
+  }
+
+  @Override
+  public void computeAnalyticDistribution(MoveLine moveLine, Move move) throws AxelorException {
+    if (move != null && analyticToolService.isManageAnalytic(move.getCompany())) {
+      this.computeAnalyticDistribution(moveLine);
+    }
+  }
+
+  @Override
+  public void updateAccountTypeOnAnalytic(
+      MoveLine moveLine, List<AnalyticMoveLine> analyticMoveLineList) {
+
+    if ((analyticMoveLineList == null || analyticMoveLineList.isEmpty())) {
+      return;
+    }
+
+    for (AnalyticMoveLine analyticMoveLine : analyticMoveLineList) {
+      if (moveLine.getAccount() != null) {
+        analyticMoveLine.setAccount(moveLine.getAccount());
+        analyticMoveLine.setAccountType(moveLine.getAccount().getAccountType());
+      }
+    }
+  }
+
+  @Override
+  public void generateAnalyticMoveLines(MoveLine moveLine) {
+
+    List<AnalyticMoveLine> analyticMoveLineList =
+        analyticMoveLineService.generateLines(
+            moveLine.getAnalyticDistributionTemplate(),
+            currencyScaleService.getCompanyScaledValue(
+                moveLine, moveLine.getDebit().add(moveLine.getCredit())),
+            AnalyticMoveLineRepository.STATUS_REAL_ACCOUNTING,
+            moveLine.getDate());
+
+    analyticMoveLineList.stream().forEach(moveLine::addAnalyticMoveLineListItem);
+  }
+
+  @Override
+  public MoveLine createAnalyticDistributionWithTemplate(MoveLine moveLine) {
+
+    List<AnalyticMoveLine> analyticMoveLineList =
+        analyticMoveLineService.generateLines(
+            moveLine.getAnalyticDistributionTemplate(),
+            currencyScaleService.getCompanyScaledValue(
+                moveLine, moveLine.getDebit().add(moveLine.getCredit())),
+            AnalyticMoveLineRepository.STATUS_REAL_ACCOUNTING,
+            moveLine.getDate());
+
+    if (moveLine.getAnalyticMoveLineList() == null) {
+      moveLine.setAnalyticMoveLineList(new ArrayList<>());
+    } else {
+      moveLine.getAnalyticMoveLineList().clear();
+    }
+    for (AnalyticMoveLine analyticMoveLine : analyticMoveLineList) {
+      moveLine.addAnalyticMoveLineListItem(analyticMoveLine);
+    }
+    return moveLine;
+  }
+
+  @Override
+  public MoveLine createAnalyticDistributionWithTemplate(MoveLine moveLine, Move move)
+      throws AxelorException {
+    if (analyticToolService.isManageAnalytic(move.getCompany())) {
+      this.createAnalyticDistributionWithTemplate(moveLine);
+    }
+
+    return moveLine;
+  }
+
+  @Override
+  public MoveLine selectDefaultDistributionTemplate(MoveLine moveLine, Move move)
+      throws AxelorException {
+    if (moveLine != null) {
+      moveLine.setAnalyticDistributionTemplate(
+          getDistributionTemplate(move, moveLine, move.getTradingName()));
+    }
+    List<AnalyticMoveLine> analyticMoveLineList = moveLine.getAnalyticMoveLineList();
+    if (analyticMoveLineList != null) {
+      analyticMoveLineList.clear();
+    } else {
+      moveLine.setAnalyticMoveLineList(new ArrayList<AnalyticMoveLine>());
+    }
+    moveLine = computeAnalyticDistribution(moveLine);
+    return moveLine;
+  }
+
+  protected AnalyticDistributionTemplate getDistributionTemplate(
+      Move move, MoveLine moveLine, TradingName tradingName) throws AxelorException {
+    AnalyticDistributionTemplate analyticDistributionTemplate = null;
+    if (move == null
+        || moveLine == null
+        || moveLine.getAccount() == null
+        || !moveLine.getAccount().getAnalyticDistributionAuthorized()) {
+      return null;
+    }
+
+    analyticDistributionTemplate =
+        analyticMoveLineService.getAnalyticDistributionTemplate(
+            moveLine.getPartner(),
+            null,
+            move.getCompany(),
+            tradingName,
+            moveLine.getAccount(),
+            false);
+
+    return analyticDistributionTemplate;
+  }
+
+  @Override
+  public MoveLine analyzeMoveLine(MoveLine moveLine, Company company) throws AxelorException {
+    if (moveLine != null) {
+
+      if (moveLine.getAnalyticMoveLineList() == null) {
+        moveLine.setAnalyticMoveLineList(new ArrayList<>());
+      } else {
+        moveLine.getAnalyticMoveLineList().clear();
+      }
+
+      AnalyticMoveLine analyticMoveLine = null;
+
+      if (moveLine.getAxis1AnalyticAccount() != null) {
+        analyticMoveLine =
+            analyticMoveLineService.computeAnalyticMoveLine(
+                moveLine, company, moveLine.getAxis1AnalyticAccount());
+        moveLine.addAnalyticMoveLineListItem(analyticMoveLine);
+      }
+      if (moveLine.getAxis2AnalyticAccount() != null) {
+        analyticMoveLine =
+            analyticMoveLineService.computeAnalyticMoveLine(
+                moveLine, company, moveLine.getAxis2AnalyticAccount());
+        moveLine.addAnalyticMoveLineListItem(analyticMoveLine);
+      }
+      if (moveLine.getAxis3AnalyticAccount() != null) {
+        analyticMoveLine =
+            analyticMoveLineService.computeAnalyticMoveLine(
+                moveLine, company, moveLine.getAxis3AnalyticAccount());
+        moveLine.addAnalyticMoveLineListItem(analyticMoveLine);
+      }
+      if (moveLine.getAxis4AnalyticAccount() != null) {
+        analyticMoveLine =
+            analyticMoveLineService.computeAnalyticMoveLine(
+                moveLine, company, moveLine.getAxis4AnalyticAccount());
+        moveLine.addAnalyticMoveLineListItem(analyticMoveLine);
+      }
+      if (moveLine.getAxis5AnalyticAccount() != null) {
+        analyticMoveLine =
+            analyticMoveLineService.computeAnalyticMoveLine(
+                moveLine, company, moveLine.getAxis5AnalyticAccount());
+        moveLine.addAnalyticMoveLineListItem(analyticMoveLine);
+      }
+    }
+    return moveLine;
+  }
+
+  @Override
+  public MoveLine clearAnalyticAccounting(MoveLine moveLine) {
+    moveLine.setAxis1AnalyticAccount(null);
+    moveLine.setAxis2AnalyticAccount(null);
+    moveLine.setAxis3AnalyticAccount(null);
+    moveLine.setAxis4AnalyticAccount(null);
+    moveLine.setAxis5AnalyticAccount(null);
+
+    this.clearAnalyticMoveLineList(moveLine);
+
+    return moveLine;
+  }
+
+  @Override
+  public MoveLine clearAnalyticAccountingIfEmpty(MoveLine moveLine) {
+    if (moveLine.getAxis1AnalyticAccount() == null
+        && moveLine.getAxis2AnalyticAccount() == null
+        && moveLine.getAxis3AnalyticAccount() == null
+        && moveLine.getAxis4AnalyticAccount() == null
+        && moveLine.getAxis5AnalyticAccount() == null) {
+      this.clearAnalyticMoveLineList(moveLine);
+    }
+
+    return moveLine;
+  }
+
+  protected void clearAnalyticMoveLineList(MoveLine moveLine) {
+    if (!CollectionUtils.isEmpty(moveLine.getAnalyticMoveLineList())) {
+      moveLine
+          .getAnalyticMoveLineList()
+          .forEach(analyticMoveLine -> analyticMoveLine.setMoveLine(null));
+      moveLine.getAnalyticMoveLineList().clear();
+    }
+  }
+
+  @Override
+  public void copyAnalyticsDataFromMoveLine(
+      MoveLine oldMoveLine, MoveLine newMoveLine, BigDecimal newAmount) {
+    clearAnalyticAccounting(newMoveLine);
+    initializeAnalyticFields(oldMoveLine, newMoveLine);
+
+    for (AnalyticMoveLine originalAnalyticMoveLine : oldMoveLine.getAnalyticMoveLineList()) {
+      AnalyticMoveLine analyticMoveLine =
+          analyticMoveLineRepository.copy(originalAnalyticMoveLine, false);
+
+      if (newAmount.signum() != 0 && analyticMoveLine.getPercentage().signum() != 0) {
+        int signum = analyticMoveLine.getAmount().signum();
+        BigDecimal amount =
+            newAmount.multiply(
+                analyticMoveLine
+                    .getPercentage()
+                    .multiply(BigDecimal.valueOf(signum))
+                    .divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP));
+        analyticMoveLine.setAmount(
+            currencyScaleService.getCompanyScaledValue(analyticMoveLine, amount));
+      }
+
+      analyticMoveLine.setTypeSelect(AnalyticMoveLineRepository.STATUS_REAL_ACCOUNTING);
+      analyticMoveLine.setMoveLine(null);
+      newMoveLine.addAnalyticMoveLineListItem(analyticMoveLine);
+    }
+  }
+
+  protected void initializeAnalyticFields(MoveLine oldMoveLine, MoveLine newMoveLine) {
+    newMoveLine.setAnalyticDistributionTemplate(oldMoveLine.getAnalyticDistributionTemplate());
+
+    newMoveLine.setAxis1AnalyticAccount(oldMoveLine.getAxis1AnalyticAccount());
+    newMoveLine.setAxis2AnalyticAccount(oldMoveLine.getAxis2AnalyticAccount());
+    newMoveLine.setAxis3AnalyticAccount(oldMoveLine.getAxis3AnalyticAccount());
+    newMoveLine.setAxis4AnalyticAccount(oldMoveLine.getAxis4AnalyticAccount());
+    newMoveLine.setAxis5AnalyticAccount(oldMoveLine.getAxis5AnalyticAccount());
+  }
+}

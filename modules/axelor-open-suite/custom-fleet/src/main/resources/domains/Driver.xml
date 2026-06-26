@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://axelor.com/xml/ns/domain-models
+  https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+  <module name="fleet" package="com.custom.fleet.db"/>
+
+  <entity name="Driver">
+    <string name="fullName" namecolumn="true" required="true"/>
+    <string name="licenseNumber" required="true"/>
+    <one-to-many name="tripList" ref="com.custom.fleet.db.Trip" mappedBy="driver"/>
+  </entity>
+
+</domain-models>

@@ -1,0 +1,24 @@
+plugins {
+	id 'com.axelor.app'
+}
+
+apply from: "../libs.gradle"
+apply from: "../version.gradle"
+
+apply {
+	version = openSuiteVersion
+}
+
+axelor {
+	title "Axelor Supply Chain"
+	description "Axelor Supply Chain Module"
+}
+
+dependencies {
+	api project(":modules:axelor-open-suite:axelor-purchase")
+	api project(":modules:axelor-open-suite:axelor-sale")
+	api project(":modules:axelor-open-suite:axelor-stock")
+	api project(":modules:axelor-open-suite:axelor-account")
+    testImplementation libs.mockito
+	implementation libs.swagger_jaxrs
+}

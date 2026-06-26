@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://axelor.com/xml/ns/domain-models
+ https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+  <module name="fleet" package="com.custom.fleet.db"/>
+
+  <entity name="TripLine">
+    <many-to-one name="trip" ref="com.custom.fleet.db.Trip" required="true" title="Trip"/>
+
+    <!-- Reference to Product from Base module -->
+    <many-to-one name="product" ref="com.axelor.apps.base.db.Product" required="true"
+      title="Product"/>
+
+    <integer name="qty" title="Number of Items" required="true" min="1"/>
+
+    <!-- Optional -->
+    <decimal name="weight" title="Weight (KG)"/>
+  </entity>
+
+</domain-models>

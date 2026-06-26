@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+  https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+  <!-- Parent Menu -->
+  <menuitem name="menu-fleet-main" title="Fleet Management" icon="fa-truck" left="true"/>
+
+  <!-- Vehicle Menu -->
+  <menuitem name="menu-fleet-vehicles" parent="menu-fleet-main" title="Vehicles"
+    action="action-fleet-vehicle-view"/>
+
+  <!-- Driver Menu -->
+  <menuitem name="menu-fleet-drivers" parent="menu-fleet-main" title="Drivers"
+    action="action-fleet-driver-view"/>
+
+  <!--Trip Menu -->
+  <menuitem name="menu-fleet-trips" parent="menu-fleet-main" title="Trips"
+    action="action-fleet-trip-view"/>
+
+  <!-- Actions -->
+  <action-view name="action-fleet-vehicle-view" title="Vehicles"
+    model="com.custom.fleet.db.Vehicle">
+    <view type="grid" name="vehicle-grid"/>
+    <view type="form" name="vehicle-form"/>
+  </action-view>
+
+  <action-view name="action-fleet-driver-view" title="Drivers"
+    model="com.custom.fleet.db.Driver">
+    <view type="grid" name="driver-grid"/>
+    <view type="form" name="driver-form"/>
+  </action-view>
+
+  <action-view name="action-fleet-trip-view" title="Trips"
+    model="com.custom.fleet.db.Trip">
+    <view type="grid" name="trip-grid"/>
+    <view type="form" name="trip-form"/>
+  </action-view>
+
+
+</object-views>

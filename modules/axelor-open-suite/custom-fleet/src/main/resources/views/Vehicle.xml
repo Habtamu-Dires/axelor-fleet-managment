@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+              https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+  <!-- Vehicle Grid -->
+  <grid name="vehicle-grid" title="Vehicles" model="com.custom.fleet.db.Vehicle">
+    <field name="licensePlate"/>
+    <field name="modelName"/>
+    <field name="year"/>
+    <field name="status" widget="badge" colorify="true"/>
+    <field name="mainDriver"/>
+  </grid>
+
+  <!-- Vehicle Form -->
+  <form name="vehicle-form" title="Vehicle" model="com.custom.fleet.db.Vehicle">
+    <panel title="Vehicle Details" colSpan="12">
+      <field name="licensePlate"/>
+      <field name="modelName"/>
+      <field name="year"/>
+      <field name="capacityKg"/>
+      <field name="status" widget="single-select" colSpan="6" colorify="true"/>
+    </panel>
+
+    <panel title="Driver Assignment" colSpan="12">
+      <field name="mainDriver" form-view="driver-form" grid-view="driver-grid"
+        title="Main Driver" canNew="true" canEdit="true"/>
+    </panel>
+  </form>
+
+</object-views>

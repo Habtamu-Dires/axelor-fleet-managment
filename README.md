@@ -38,3 +38,4 @@ You can find more detailed [installation instructions](https://docs.axelor.com/a
 # axelor-fleet-managment
 # axelor-fleet-managment
 # axelor-fleet-managment
+# axelor-fleet-managment

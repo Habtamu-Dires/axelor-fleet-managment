@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+  https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+  <!-- Driver Grid -->
+  <grid name="driver-grid" title="Drivers" model="com.custom.fleet.db.Driver">
+    <field name="fullName"/>
+    <field name="licenseNumber"/>
+  </grid>
+
+  <!-- Driver Form -->
+  <form name="driver-form" title="Driver" model="com.custom.fleet.db.Driver">
+    <panel title="Driver Info">
+      <field name="fullName"/>
+      <field name="licenseNumber"/>
+    </panel>
+    <panel-related name="driverTripsPanel" field="tripList" grid-view="trip-grid"
+      title="Trip History" readonly="true"/>
+  </form>
+
+</object-views>

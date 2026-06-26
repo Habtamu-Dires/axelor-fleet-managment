@@ -1,0 +1,15 @@
+plugins {
+    id 'com.axelor.app'
+}
+
+axelor {
+    title = 'Fleet Management'
+    description = 'Module for managing vehicle logistics and fleet operations'
+}
+
+
+dependencies {
+    api project(':modules:axelor-open-suite:axelor-base')
+    api project(':modules:axelor-open-suite:axelor-sale')   // Important for Product
+    api project(':modules:axelor-open-suite:axelor-stock')  // For future fuel/stock integration
+}
