@@ -5,25 +5,25 @@
   https://axelor.com/xml/ns/object-views/object-views_8.5.xsd">
 
   <grid name="fuel-fill-grid" title="Fuel Fills" model="com.custom.fleet.db.FuelFill">
-    <field name="trip" />
+    <field name="trip"/>
     <field name="fillDate"/>
     <field name="product"/>
     <field name="stockLocation"/>
     <field name="qty"/>
   </grid>
 
-   <form name="fuel-fill-form" title="Fuel Fill" model="com.custom.fleet.db.FuelFill"
-         onSave="action-fuel-fill-create-stock-move">
+  <form name="fuel-fill-form" title="Fuel Fill" model="com.custom.fleet.db.FuelFill"
+    onSave="action-fuel-fill-create-stock-move">
 
-     <panel title="Fuel Consumption">
-       <field name="trip" hidden="true"/>
-       <field name="fillDate"/>
-       <field name="product"/>
-       <field name="stockLocation"/>
-       <field name="qty"/>
-       <field name="notes"/>
-     </panel>
-   </form>
+    <panel title="Fuel Consumption">
+      <field name="trip" hidden="true"/>
+      <field name="fillDate"/>
+      <field name="product"/>
+      <field name="stockLocation"/>
+      <field name="qty"/>
+      <field name="notes"/>
+    </panel>
+  </form>
 
 
 </object-views>

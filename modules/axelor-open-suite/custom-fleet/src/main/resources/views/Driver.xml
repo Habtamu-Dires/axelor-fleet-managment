@@ -14,8 +14,12 @@
   <form name="driver-form" title="Driver" model="com.custom.fleet.db.Driver">
     <panel title="Driver Info">
       <field name="fullName"/>
+      <field name="authUser" readonly="true" canNew="false" canEdit="false"/>
       <field name="licenseNumber"/>
     </panel>
+    <panel-related name="driverVehiclePanel" field="vehicles" grid-view="vehicle-grid"
+      title="Assigned Vehicles" readonly="true"/>
+
     <panel-related name="driverTripsPanel" field="tripList" grid-view="trip-grid"
       title="Trip History" readonly="true"/>
   </form>

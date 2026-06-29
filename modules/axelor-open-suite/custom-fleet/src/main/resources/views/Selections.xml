@@ -11,4 +11,11 @@
     <option value="4" color="secondary">Retired</option>
   </selection>
 
+  <selection name="fleet.trip.status.selection">
+    <option value="1" color="secondary">Created</option>
+    <option value="2" color="warning">In Progress</option>
+    <option value="3" color="success">Completed</option>
+    <option value="4" color="danger">Cancelled</option>
+  </selection>
+
 </object-views>

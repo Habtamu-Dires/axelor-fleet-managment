@@ -10,6 +10,7 @@
     <string name="tripId" namecolumn="true" required="true"/>
     <string name="destination" required="true"/>
     <datetime name="departureDate"/>
+    <integer name="status" selection="fleet.trip.status.selection" default="1"/>
     <!-- Computed Arrival Date using Groovy -->
     <datetime name="arrivalDate">
            <![CDATA[

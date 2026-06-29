@@ -8,8 +8,11 @@
 
   <entity name="Driver">
     <string name="fullName" namecolumn="true" required="true"/>
+    <many-to-one name="authUser" ref="com.axelor.auth.db.User"
+      title="System User Account"/>
     <string name="licenseNumber" required="true"/>
     <one-to-many name="tripList" ref="com.custom.fleet.db.Trip" mappedBy="driver"/>
+    <one-to-many name="vehicles" ref="com.custom.fleet.db.Vehicle" mappedBy="mainDriver"/>
   </entity>
 
 </domain-models>

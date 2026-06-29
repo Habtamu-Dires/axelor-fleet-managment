@@ -7,6 +7,7 @@
   <!-- Trip Grid -->
   <grid name="trip-grid" title="Trips" model="com.custom.fleet.db.Trip">
     <field name="tripId"/>
+    <field name="status"/>
     <field name="totalItems"/>
     <field name="destination"/>
     <field name="departureDate"/>
@@ -27,6 +28,7 @@
     onSave="save,action-fuel-fill-create-stock-move">
     <panel title="General Information">
       <field name="tripId"/>
+      <field name="status" onChange="action-trip-status-changed"/>
       <field name="destination"/>
       <field name="estimatedDistance"/>
     </panel>
@@ -44,8 +46,8 @@
     </panel>
 
     <panel title="Assignment">
-      <field name="vehicle" domain="self.status = 1"/>
-      <field name="driver"/>
+      <field name="vehicle" onChange="action-group-trip-vehicle-changed"/>
+      <field name="driver" onChange="action-group-trip-dynamic-domains"/>
     </panel>
 
     <!-- Inside the Trip Form, preferably in a new panel -->
@@ -72,6 +74,7 @@
 
   <!-- ====================== ACTION ====================== -->
 
+  <!-- view trip line -->
   <action-view name="action-trip-view-trip-lines" model="com.custom.fleet.db.TripLine"
     title="Cargo Items">
 
@@ -86,6 +89,33 @@
     <domain>self.trip = :tripId</domain>
     <context name="tripId" expr="eval: __this__.id"/>
   </action-view>
+
+  <!--assign vehicle & driver -->
+  <action-group name="action-group-trip-dynamic-domains">
+    <action name="action-attrs-trip-set-domains"/>
+  </action-group>
+
+  <action-group name="action-group-trip-vehicle-changed">
+    <action name="action-record-trip-autofill-driver"/>
+    <action name="action-attrs-trip-set-domains"/>
+  </action-group>
+
+  <action-attrs name="action-attrs-trip-set-domains" model="com.custom.fleet.db.Trip">
+    <attribute name="domain" for="vehicle"
+               expr="eval: driver ? 'self.mainDriver.id = ' + driver.id : null"/>
+
+    <attribute name="domain" for="driver"
+               expr="eval: vehicle?.mainDriver ? 'self.id = ' + vehicle.mainDriver.id : null"/>
+  </action-attrs>
+
+  <action-record name="action-record-trip-autofill-driver" model="com.custom.fleet.db.Trip">
+    <field name="driver" expr="eval: vehicle.mainDriver" if="vehicle?.mainDriver != null"/>
+  </action-record>
+  
+  <!--Action to change vehicle status -->
+  <action-record name="action-trip-status-changed" model="">
+    <field name="" expr=""/>
+  </action-record>
 
   <!-- Action to compute total items -->
   <action-record name="action-trip-compute-total-items"
@@ -103,7 +133,7 @@
     <context name="tripId" expr="eval: __this__.id"/>
   </action-view>
 
-  <!-- Action to make fuel stock move  -->
+  <!-- Action to make fuel stock move -->
   <action-method name="action-fuel-fill-create-stock-move">
     <call class="com.custom.fleet.web.TripController" method="processTripFuels"/>
   </action-method>
