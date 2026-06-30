@@ -9,13 +9,17 @@ import com.axelor.apps.stock.db.repo.StockLocationRepository;
 import com.axelor.apps.stock.db.repo.StockMoveRepository;
 import com.axelor.apps.stock.service.StockMoveService;
 import com.axelor.db.JPA; // ADD THIS
+import com.axelor.inject.Beans;
 import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
 import com.custom.fleet.db.FuelFill;
 import com.custom.fleet.db.Trip;
+import com.custom.fleet.db.Vehicle;
 import com.custom.fleet.db.repo.FuelFillRepository;
 import com.custom.fleet.db.repo.TripRepository;
+import com.custom.fleet.db.repo.VehicleRepository;
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -27,7 +31,8 @@ public class TripController {
   @Inject private StockMoveRepository stockMoveRepo;
   @Inject private StockLocationRepository stockLocationRepo;
   @Inject private StockMoveService stockMoveService;
-  @Inject private StockLocationLineRepository stockLocationLineRepo; // Injected here
+  @Inject private StockLocationLineRepository stockLocationLineRepo;
+  @Inject private VehicleRepository vehicleRepo;
 
   public void processTripFuels(ActionRequest request, ActionResponse response) {
     Trip contextTrip = request.getContext().asType(Trip.class);
@@ -173,4 +178,79 @@ public class TripController {
 
     stockMoveService.realize(stockMove);
   }
+
+  // update vehicle
+  // 1. ADD THIS ANNOTATION to fix the TransactionRequiredException
+  @Transactional
+  public void updateVehicleStatus(ActionRequest request, ActionResponse response) {
+
+    // The data currently on the user's screen (might not be saved yet)
+    Trip uiTrip = request.getContext().asType(Trip.class);
+
+    // Fetch the old data from the database to compare
+    Trip dbTrip = null;
+    if (uiTrip.getId() != null) {
+//      dbTrip = Beans.get(TripRepository.class).find(uiTrip.getId());
+      dbTrip = tripRepo.find(uiTrip.getId());
+    }
+
+    Integer oldStatus = (dbTrip != null) ? dbTrip.getStatus() : null;
+    Integer newStatus = uiTrip.getStatus();
+
+    // 2. ONLY proceed if the status has actually changed (or if it's a brand new trip)
+    if (newStatus != null && !newStatus.equals(oldStatus)) {
+
+      Vehicle vehicle = uiTrip.getVehicle();
+
+      if (vehicle != null) {
+        int newVehicleStatus = vehicle.getStatus() != null ? vehicle.getStatus() : 1;
+
+        // Apply your business logic
+        if (newStatus == 2) {
+          newVehicleStatus = 2; // On Trip
+        } else if (newStatus == 3 || newStatus == 4) {
+          newVehicleStatus = 1; // Available
+        }
+
+        // If the vehicle's status needs to change, save it
+        if (vehicle.getStatus() == null || vehicle.getStatus() != newVehicleStatus) {
+          vehicle.setStatus(newVehicleStatus);
+
+          // Because of @Transactional, this will now work perfectly
+//          Beans.get(VehicleRepository.class).save(vehicle);
+          vehicleRepo.save(vehicle);
+        }
+      } else {
+        response.setError("Vehicle not assigned");
+        response.setValue("status",1);
+
+      }
+    }
+  }
+
+  public String getVehicleDomain(Trip trip) {
+    // 1. Start with the status filter
+    String domain = "self.status = 1";
+
+    // 2. If a driver is assigned, add that filter
+    if (trip.getDriver() != null) {
+      domain += " AND self.mainDriver.id = " + trip.getDriver().getId();
+    }
+
+    // 3. IMPORTANT: Always include the currently selected vehicle
+    // Otherwise, the dropdown will look empty if the vehicle is already assigned
+    if (trip.getVehicle() != null) {
+      domain += " OR self.id = " + trip.getVehicle().getId();
+    }
+
+    return domain;
+  }
 }
+
+/**
+ * @Autowired ➔ @Inject (import from com.google.inject.Inject)
+ *
+ * ApplicationContext.getBean() ➔ Beans.get()
+ *
+ * @Transactional (Spring) ➔ @Transactional (import from com.google.inject.persist.Transactional)
+ */

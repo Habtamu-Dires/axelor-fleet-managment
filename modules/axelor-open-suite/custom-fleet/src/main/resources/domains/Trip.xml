@@ -30,7 +30,7 @@
     </datetime>
 
     <!-- Link to our existing entities -->
-    <many-to-one name="vehicle" ref="com.custom.fleet.db.Vehicle" required="true"/>
+    <many-to-one name="vehicle" ref="com.custom.fleet.db.Vehicle" required="true" updatable="true"/>
     <many-to-one name="driver" ref="com.custom.fleet.db.Driver" required="true"/>
 
     <!-- One-to-Many to TripLine -->

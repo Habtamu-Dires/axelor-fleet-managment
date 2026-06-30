@@ -28,7 +28,7 @@
     onSave="save,action-fuel-fill-create-stock-move">
     <panel title="General Information">
       <field name="tripId"/>
-      <field name="status" onChange="action-trip-status-changed"/>
+      <field name="status" onChange="action-trip-status-changed" />
       <field name="destination"/>
       <field name="estimatedDistance"/>
     </panel>
@@ -102,7 +102,10 @@
 
   <action-attrs name="action-attrs-trip-set-domains" model="com.custom.fleet.db.Trip">
     <attribute name="domain" for="vehicle"
-               expr="eval: driver ? 'self.mainDriver.id = ' + driver.id : null"/>
+               expr="eval: driver ? 'self.mainDriver.id = ' + driver.id +
+                ' AND self.status = 1 OR self.id = ' + (vehicle?.id ?: 0)
+                : 'self.status = 1'"
+    />
 
     <attribute name="domain" for="driver"
                expr="eval: vehicle?.mainDriver ? 'self.id = ' + vehicle.mainDriver.id : null"/>
@@ -113,9 +116,9 @@
   </action-record>
   
   <!--Action to change vehicle status -->
-  <action-record name="action-trip-status-changed" model="">
-    <field name="" expr=""/>
-  </action-record>
+  <action-method name="action-trip-status-changed">
+    <call class="com.custom.fleet.web.TripController" method="updateVehicleStatus"/>
+  </action-method>
 
   <!-- Action to compute total items -->
   <action-record name="action-trip-compute-total-items"

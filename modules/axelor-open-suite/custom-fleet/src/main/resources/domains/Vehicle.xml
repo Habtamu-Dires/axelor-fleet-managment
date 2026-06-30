@@ -12,7 +12,7 @@
     <integer name="year"/>
     <decimal name="capacityKg" title="Capacity (KG)"/>
     <integer name="status" selection="fleet.vehicle.status.selection" default="1"/>
-    <many-to-one name="mainDriver" ref="com.custom.fleet.db.Driver" title="Driver"/>
+    <many-to-one name="mainDriver" ref="com.custom.fleet.db.Driver" title="Driver" />
   </entity>
 
 </domain-models>
