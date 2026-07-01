@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+  https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- Stock-keeper Grid -->
+    <grid name="stock-keeper-grid" title="StockKeepers" model="com.custom.fleet.db.StockKeeper">
+        <field name="authUser"/>
+        <field name="phoneNumber" />
+        <field name="assignedWarehouse"/>
+    </grid>
+
+    <!-- Stock Keeper Form -->
+    <form name="stock-keeper-form" title="StockKeeper" model="com.custom.fleet.db.StockKeeper">
+        <panel title="Stock Keeper Info">
+            <field name="authUser"/>
+            <field name="phoneNumber"/>
+            <field name="assignedWarehouse" />
+        </panel>
+    </form>
+
+</object-views>

@@ -227,24 +227,6 @@ public class TripController {
       }
     }
   }
-
-  public String getVehicleDomain(Trip trip) {
-    // 1. Start with the status filter
-    String domain = "self.status = 1";
-
-    // 2. If a driver is assigned, add that filter
-    if (trip.getDriver() != null) {
-      domain += " AND self.mainDriver.id = " + trip.getDriver().getId();
-    }
-
-    // 3. IMPORTANT: Always include the currently selected vehicle
-    // Otherwise, the dropdown will look empty if the vehicle is already assigned
-    if (trip.getVehicle() != null) {
-      domain += " OR self.id = " + trip.getVehicle().getId();
-    }
-
-    return domain;
-  }
 }
 
 /**

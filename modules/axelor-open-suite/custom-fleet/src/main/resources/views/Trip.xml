@@ -103,8 +103,8 @@
   <action-attrs name="action-attrs-trip-set-domains" model="com.custom.fleet.db.Trip">
     <attribute name="domain" for="vehicle"
                expr="eval: driver ? 'self.mainDriver.id = ' + driver.id +
-                ' AND self.status = 1 OR self.id = ' + (vehicle?.id ?: 0)
-                : 'self.status = 1'"
+                    ' AND self.status = 1 OR self.id = ' + (vehicle?.id ?: 0)
+                    : 'self.status = 1'"
     />
 
     <attribute name="domain" for="driver"

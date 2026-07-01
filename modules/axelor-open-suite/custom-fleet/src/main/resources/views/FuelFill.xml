@@ -18,12 +18,27 @@
     <panel title="Fuel Consumption">
       <field name="trip" hidden="true"/>
       <field name="fillDate"/>
-      <field name="product"/>
-      <field name="stockLocation"/>
+      <field name="stockLocation" onChange="action-stock-location-changed" required="true"/>
+      <field name="product" readonlyIf="stockLocation == null" required="true"/>
       <field name="qty"/>
       <field name="notes"/>
     </panel>
   </form>
 
+  <!-- action -->
+<!--  <action-method name="action-stock-location-changed">-->
+<!--    <call class="com.custom.fleet.web.FuelFillController" method="updateProductDomain"/>-->
+<!--  </action-method>-->
 
+  <action-attrs name="action-stock-location-changed" model="com.custom.fleet.db.FuelFill">
+    <attribute name="domain" for="product"
+               expr="
+                 self.id IN (
+                   SELECT sll.product.id FROM com.axelor.apps.stock.db.StockLocationLine sll
+                    WHERE sll.stockLocation = :stockLocation
+                    AND sll.currentQty &gt; 0
+                 )
+                "
+    />  <!-- &gt is > -->
+  </action-attrs>
 </object-views>

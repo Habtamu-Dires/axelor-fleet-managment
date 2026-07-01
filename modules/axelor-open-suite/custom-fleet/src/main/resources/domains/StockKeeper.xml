@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models
+  https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="fleet" package="com.custom.fleet.db"/>
+
+    <entity name="StockKeeper">
+        <many-to-one name="authUser" ref="com.axelor.auth.db.User" required="true" unique="true"
+                     title="System User Account"/>
+        <string name="phoneNumber" required="true" unique="true"/>
+        <many-to-one name="assignedWarehouse" ref="com.axelor.apps.stock.db.StockLocation"
+                     title="Warehouse"/>
+    </entity>
+
+</domain-models>

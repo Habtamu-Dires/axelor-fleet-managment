@@ -9,10 +9,10 @@
   <entity name="FuelFill">
     <many-to-one name="trip" ref="com.custom.fleet.db.Trip" required="true" title="Trip"/>
 
-    <many-to-one name="product" ref="com.axelor.apps.base.db.Product" required="true"
-      title="Fuel Type"/>
     <many-to-one name="stockLocation" ref="com.axelor.apps.stock.db.StockLocation"
       required="true" title="From Warehouse"/>
+    <many-to-one name="product" ref="com.axelor.apps.base.db.Product" required="true"
+                 title="Fuel Type"/>
 
     <decimal name="qty" title="Quantity (Liters)" required="true"/>
     <datetime name="fillDate" default="now"/>

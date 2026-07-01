@@ -18,6 +18,9 @@
   <!--Trip Menu -->
   <menuitem name="menu-fleet-trips" parent="menu-fleet-main" title="Trips"
     action="action-fleet-trip-view"/>
+  <!--Stock Keeper -->
+  <menuitem name="menu-fleet-stock-keepers" parent="menu-fleet-main" title="StockKeepers"
+            action="action-fleet-stock-keeper-view"/>
 
   <!-- Actions -->
   <action-view name="action-fleet-vehicle-view" title="Vehicles"
@@ -36,6 +39,12 @@
     model="com.custom.fleet.db.Trip">
     <view type="grid" name="trip-grid"/>
     <view type="form" name="trip-form"/>
+  </action-view>
+
+  <action-view name="action-fleet-stock-keeper-view" title="StockKeepers"
+               model="com.custom.fleet.db.StockKeeper">
+    <view type="grid" name="stock-keeper-grid"/>
+    <view type="form" name="stock-keeper-form"/>
   </action-view>
 
 
